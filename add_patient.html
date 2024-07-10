@@ -168,7 +168,7 @@
                     city: city,
                     message: message
                 };
-                sendData(payload);
+                sendData(JSON.stringify(payload));
                 Telegram.WebApp.close();
 
             } else {
