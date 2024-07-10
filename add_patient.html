@@ -7,12 +7,12 @@
     <title>Telegram Patient Contact Form</title>
     <style>
         body {
-            --bg-color: var(--tg-theme-bg-color, #0088cc);
-            --primary-color: #0088cc;
-            --secondary-color: #005f99;
+            --bg-color: var(--tg-theme-bg-color, #007bff);
+            --primary-color: #ffffff;
+            --secondary-color: #0056b3;
             font: 14px/20px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
             background-color: var(--bg-color);
-            color: var(--tg-theme-text-color, #ffffff);
+            color: var(--primary-color);
             margin: 0;
             padding: 0;
             color-scheme: var(--tg-color-scheme);
@@ -29,7 +29,7 @@
         }
 
         h1 {
-            color: var(--primary-color);
+            color: var(--bg-color);
             text-align: center;
         }
 
@@ -40,7 +40,7 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: var(--primary-color);
+            color: var(--bg-color);
         }
 
         input, textarea {
@@ -58,7 +58,7 @@
             padding: 10px;
             border: none;
             border-radius: 4px;
-            background: var(--primary-color);
+            background: var(--bg-color);
             color: #fff;
             font-size: 16px;
             cursor: pointer;
@@ -122,6 +122,7 @@
             <label for="message">Message</label>
             <textarea id="message" rows="5" placeholder="Your Message"></textarea>
         </div>
+        <button id="submitBtn">Send Message</button>
     </div>
     <div id="viewport"></div>
     <div id="viewport-params-size"></div>
@@ -157,10 +158,28 @@
             const message = document.getElementById('message').value;
 
             if (name && email && phone && birthdate && street && houseNumber && postalCode && city && message) {
-                Telegram.WebApp.showAlert(`Message sent!\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nBirthdate: ${birthdate}\nAddress: ${street} ${houseNumber}, ${postalCode} ${city}\nMessage: ${message}`);
+                const payload = {
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    birthdate: birthdate,
+                    street: street,
+                    houseNumber: houseNumber,
+                    postalCode: postalCode,
+                    city: city,
+                    message: message
+                };
+                sendData(payload);
             } else {
                 Telegram.WebApp.showAlert('Please fill in all fields.');
             }
+        }
+
+        function sendData(data) {
+
+            Telegram.WebApp.sendData(JSON.stringify(data, null, 2));
+
+
         }
 
         function setViewportData() {
@@ -174,10 +193,51 @@
 
         function getPhoneNumberFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('phone') || '';
+            return urlParams.get('phone') || generateRandomPhoneNumber();
         }
 
-        document.getElementById('phone').value = getPhoneNumberFromURL();
+        function generateRandomPhoneNumber() {
+            const prefix = "+49";
+            const number = Math.floor(Math.random() * 1000000000).toString().padStart(9, '0');
+            return prefix + number;
+        }
+
+        function generateRandomString(length) {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+            let result = '';
+            const charactersLength = characters.length;
+            for (let i = 0; i < length; i++) {
+                result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            }
+            return result;
+        }
+
+        function generateRandomEmail() {
+            const domains = ['example.com', 'test.com', 'mail.com'];
+            const domain = domains[Math.floor(Math.random() * domains.length)];
+            return generateRandomString(7) + '@' + domain;
+        }
+
+        function generateRandomDate() {
+            const start = new Date(1950, 0, 1);
+            const end = new Date(2000, 11, 31);
+            const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+            return date.toISOString().split('T')[0];
+        }
+
+        function fillFormWithRandomData() {
+            document.getElementById('name').value = generateRandomString(10);
+            document.getElementById('email').value = generateRandomEmail();
+            document.getElementById('phone').value = getPhoneNumberFromURL();
+            document.getElementById('birthdate').value = generateRandomDate();
+            document.getElementById('street').value = generateRandomString(15);
+            document.getElementById('houseNumber').value = Math.floor(Math.random() * 1000).toString();
+            document.getElementById('postalCode').value = Math.floor(Math.random() * 90000 + 10000).toString();
+            document.getElementById('city').value = generateRandomString(10);
+            document.getElementById('message').value = 'This is a test message.';
+        }
+
+        fillFormWithRandomData();
 
         Telegram.WebApp.setHeaderColor('secondary_bg_color');
 
