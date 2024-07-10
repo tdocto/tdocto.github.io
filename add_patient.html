@@ -122,7 +122,6 @@
             <label for="message">Message</label>
             <textarea id="message" rows="5" placeholder="Your Message"></textarea>
         </div>
-        <button id="submitBtn">Send Message</button>
     </div>
     <div id="viewport"></div>
     <div id="viewport-params-size"></div>
@@ -170,6 +169,8 @@
                     message: message
                 };
                 sendData(payload);
+                Telegram.WebApp.close();
+
             } else {
                 Telegram.WebApp.showAlert('Please fill in all fields.');
             }
