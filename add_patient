@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Telegram Patient Contact Form</title>
+    <style>
+        body {
+            --bg-color: var(--tg-theme-bg-color, #0088cc);
+            --primary-color: #0088cc;
+            --secondary-color: #005f99;
+            font: 14px/20px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--tg-theme-text-color, #ffffff);
+            margin: 0;
+            padding: 0;
+            color-scheme: var(--tg-color-scheme);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        input, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 4px;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            display: inline-block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--secondary-color);
+        }
+
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            min-width: 45%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Patient Contact Information</h1>
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" placeholder="Your Name">
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Your Email">
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" readonly>
+        </div>
+        <div class="form-group">
+            <label for="birthdate">Birthdate</label>
+            <input type="date" id="birthdate">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="street">Street</label>
+                <input type="text" id="street" placeholder="Street Name">
+            </div>
+            <div class="form-group">
+                <label for="houseNumber">House Number</label>
+                <input type="text" id="houseNumber" placeholder="House Number">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="postalCode">Postal Code</label>
+            <input type="text" id="postalCode" placeholder="Postal Code">
+        </div>
+        <div class="form-group">
+            <label for="city">City</label>
+            <input type="text" id="city" placeholder="City">
+        </div>
+        <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" rows="5" placeholder="Your Message"></textarea>
+        </div>
+    </div>
+    <div id="viewport"></div>
+    <div id="viewport-params-size"></div>
+    <div id="viewport-params-expand"></div>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Init TWA
+        Telegram.WebApp.ready();
+
+        // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
+        Telegram.WebApp.onEvent('themeChanged', function() {
+            document.documentElement.className = Telegram.WebApp.colorScheme;
+        });
+
+        // Show main button
+        Telegram.WebApp.MainButton.setParams({
+            text: 'Send Message'
+        });
+        Telegram.WebApp.MainButton.onClick(function () {
+            submitForm();
+        });	
+        Telegram.WebApp.MainButton.show();
+
+        function submitForm() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const birthdate = document.getElementById('birthdate').value;
+            const street = document.getElementById('street').value;
+            const houseNumber = document.getElementById('houseNumber').value;
+            const postalCode = document.getElementById('postalCode').value;
+            const city = document.getElementById('city').value;
+            const message = document.getElementById('message').value;
+
+            if (name && email && phone && birthdate && street && houseNumber && postalCode && city && message) {
+                Telegram.WebApp.showAlert(`Message sent!\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone}\nBirthdate: ${birthdate}\nAddress: ${street} ${houseNumber}, ${postalCode} ${city}\nMessage: ${message}`);
+            } else {
+                Telegram.WebApp.showAlert('Please fill in all fields.');
+            }
+        }
+
+        function setViewportData() {
+            var sizeEl = document.getElementById('viewport-params-size');
+            sizeEl.innerText = 'width: ' + window.innerWidth + ' x ' + 
+                'height: ' + Telegram.WebApp.viewportStableHeight;
+
+            var expandEl = document.querySelector('#viewport-params-expand');
+            expandEl.innerText = 'Is Expanded: ' + (Telegram.WebApp.isExpanded ? 'true' : 'false');
+        }
+
+        function getPhoneNumberFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('phone') || '';
+        }
+
+        document.getElementById('phone').value = getPhoneNumberFromURL();
+
+        Telegram.WebApp.setHeaderColor('secondary_bg_color');
+
+        setViewportData();
+        Telegram.WebApp.onEvent('viewportChanged', setViewportData);
+
+        Telegram.WebApp.onEvent('themeChanged', function() {
+            document.body.setAttribute('style', '--bg-color:' + Telegram.WebApp.backgroundColor);
+        });
+
+    </script>
+</body>
+</html>
