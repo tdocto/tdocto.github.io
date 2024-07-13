@@ -7,33 +7,30 @@
     <title>Telegram Patient Contact Form</title>
     <style>
         body {
-            --bg-color: var(--tg-theme-bg-color, #ffffff);
-            --primary-color: var(--tg-theme-text-color, #000000);
-            --secondary-color: var(--tg-theme-hint-color, #aaaaaa);
-            --button-color: var(--tg-theme-button-color, #007bff);
-            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --bg-color: var(--tg-theme-bg-color, #007bff);
+            --primary-color: #ffffff;
+            --secondary-color: #0056b3;
             font: 14px/20px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
             background-color: var(--bg-color);
             color: var(--primary-color);
             margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            padding: 0;
+            color-scheme: var(--tg-color-scheme);
         }
 
         .container {
             max-width: 600px;
-            margin: 0 auto;
+            margin: 50px auto;
             padding: 20px;
             border-radius: 8px;
-            background: var(--tg-theme-secondary-bg-color, #ffffff);
+            background: #ffffff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
+            color: #333;
         }
 
         h1 {
-            color: var(--primary-color);
+            color: var(--bg-color);
             text-align: center;
-            margin-bottom: 20px;
         }
 
         .form-group {
@@ -43,36 +40,33 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: var(--primary-color);
+            color: var(--bg-color);
         }
 
         input, textarea {
-            width: 100%;
+            width: calc(100% - 22px);
             padding: 10px;
             border: 1px solid var(--secondary-color);
             border-radius: 4px;
             font-size: 14px;
-            color: var(--primary-color);
-            background-color: var(--bg-color);
-            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         button {
-            display: block;
+            display: inline-block;
             width: 100%;
             padding: 10px;
             border: none;
             border-radius: 4px;
-            background: var(--button-color);
-            color: var(--button-text-color);
+            background: var(--bg-color);
+            color: #fff;
             font-size: 16px;
             cursor: pointer;
             transition: background 0.3s ease;
-            margin-top: 20px;
         }
 
         button:hover {
-            background: var(--button-color);
+            background: var(--secondary-color);
         }
 
         .form-row {
@@ -82,7 +76,7 @@
 
         .form-row .form-group {
             flex: 1;
-            min-width: 48%;
+            min-width: 45%;
         }
     </style>
 </head>
@@ -129,6 +123,9 @@
             <textarea id="message" rows="5" placeholder="Your Message"></textarea>
         </div>
     </div>
+    <div id="viewport"></div>
+    <div id="viewport-params-size"></div>
+    <div id="viewport-params-expand"></div>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         // Init TWA
@@ -137,23 +134,7 @@
         // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
         Telegram.WebApp.onEvent('themeChanged', function() {
             document.documentElement.className = Telegram.WebApp.colorScheme;
-            updateTheme();
         });
-
-        function updateTheme() {
-            const themeParams = Telegram.WebApp.themeParams;
-            const bgColor = themeParams.bg_color || '#ffffff';
-            const textColor = themeParams.text_color || '#000000';
-            const hintColor = themeParams.hint_color || '#aaaaaa';
-            const buttonColor = themeParams.button_color || '#007bff';
-            const buttonText = themeParams.button_text_color || '#ffffff';
-            
-            document.body.style.setProperty('--bg-color', bgColor);
-            document.body.style.setProperty('--primary-color', textColor);
-            document.body.style.setProperty('--secondary-color', hintColor);
-            document.body.style.setProperty('--button-color', buttonColor);
-            document.body.style.setProperty('--button-text-color', buttonText);
-        }
 
         // Show main button
         Telegram.WebApp.MainButton.setParams({
@@ -161,7 +142,7 @@
         });
         Telegram.WebApp.MainButton.onClick(function () {
             submitForm();
-        });    
+        });	
         Telegram.WebApp.MainButton.show();
 
         function submitForm() {
@@ -187,30 +168,28 @@
                     city: city,
                     message: message
                 };
-                sendResult(payload);
+                sendData(JSON.stringify(payload));
                 Telegram.WebApp.close();
+
             } else {
                 Telegram.WebApp.showAlert('Please fill in all fields.');
             }
         }
 
-        function sendResult(data) {
-            const queryId = Telegram.WebApp.initDataUnsafe.query_id;
-            if (!queryId) {
-                Telegram.WebApp.showAlert('No query ID found.');
-                return;
-            }
+        function sendData(data) {
 
-            const result = {
-                type: 'article',
-                id: 'unique-id',
-                title: 'Contact Information Submitted',
-                input_message_content: {
-                    message_text: `Contact Information:\n\nName: ${data.name}\nEmail: ${data.email}\nPhone: ${data.phone}\nBirthdate: ${data.birthdate}\nStreet: ${data.street}\nHouse Number: ${data.houseNumber}\nPostal Code: ${data.postalCode}\nCity: ${data.city}\nMessage: ${data.message}`
-                }
-            };
+            Telegram.WebApp.sendData(JSON.stringify(data, null, 2));
 
-            Telegram.WebApp.answerWebAppQuery(queryId, result);
+
+        }
+
+        function setViewportData() {
+            var sizeEl = document.getElementById('viewport-params-size');
+            sizeEl.innerText = 'width: ' + window.innerWidth + ' x ' + 
+                'height: ' + Telegram.WebApp.viewportStableHeight;
+
+            var expandEl = document.querySelector('#viewport-params-expand');
+            expandEl.innerText = 'Is Expanded: ' + (Telegram.WebApp.isExpanded ? 'true' : 'false');
         }
 
         function getPhoneNumberFromURL() {
@@ -260,7 +239,16 @@
         }
 
         fillFormWithRandomData();
-        updateTheme();
+
+        Telegram.WebApp.setHeaderColor('secondary_bg_color');
+
+        setViewportData();
+        Telegram.WebApp.onEvent('viewportChanged', setViewportData);
+
+        Telegram.WebApp.onEvent('themeChanged', function() {
+            document.body.setAttribute('style', '--bg-color:' + Telegram.WebApp.backgroundColor);
+        });
+
     </script>
 </body>
 </html>
