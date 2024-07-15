@@ -127,10 +127,20 @@
             return birthdate && birthdate.getDate() === day && birthdate.getMonth() === month - 1 && birthdate.getFullYear() === year;
         }
 
+        function getPhoneNumberFromURL() {
+            // Get the current URL
+            const url = new URL(window.location.href);
+            // Use URLSearchParams to parse query parameters
+            const params = new URLSearchParams(url.search);
+            // Get the phone parameter value
+            const phoneNumber = params.get('phone');
+            return phoneNumber;
+        }
+
         function submitForm() {
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
+            const phone = getPhoneNumberFromURL();
             const birthdate = document.getElementById('birthdate').value;
             const address = document.getElementById('address').value;
             const postalCode = document.getElementById('postalCode').value;
