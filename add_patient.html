@@ -137,10 +137,12 @@
             const city = document.getElementById('city').value;
             const message = document.getElementById('message').value;
 
+            /*
             if (!name || !email || !birthdate || !address || !postalCode || !city) {
                 Telegram.WebApp.showAlert('Please fill in all required fields.');
                 return;
             }
+            */
 
             if (!validateBirthdate(birthdate)) {
                 Telegram.WebApp.showAlert('Please enter a valid birthdate in the format DD.MM.YYYY.');
