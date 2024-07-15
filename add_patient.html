@@ -5,85 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Telegram Patient Contact Form</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --primary-color: var(--tg-theme-text-color, #000000);
+            --secondary-color: var(--tg-theme-button-color, #6200ea);
+        }
+
         body {
-            --bg-color: var(--tg-theme-bg-color, #007bff);
-            --primary-color: #ffffff;
-            --secondary-color: #0056b3;
-            font: 14px/20px "Lucida Grande", "Lucida Sans Unicode", Arial, Helvetica, Verdana, sans-serif;
+            font-family: 'Roboto', sans-serif;
             background-color: var(--bg-color);
             color: var(--primary-color);
             margin: 0;
             padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             color-scheme: var(--tg-color-scheme);
         }
 
         .container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
+            width: 100%;
+            max-width: 380px;
+            padding: 10px 20px;
             border-radius: 8px;
-            background: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            color: #333;
-        }
-
-        h1 {
-            color: var(--bg-color);
-            text-align: center;
+            background: var(--bg-color);
+            color: var(--primary-color);
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         label {
             display: block;
             margin-bottom: 5px;
-            color: var(--bg-color);
+            color: var(--primary-color);
+            font-weight: 500;
+            font-size: 14px;
         }
 
         input, textarea {
-            width: calc(100% - 22px);
-            padding: 10px;
-            border: 1px solid var(--secondary-color);
+            width: calc(100% - 20px);
+            padding: 8px;
+            margin: 0 10px;
+            border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: var(--bg-color);
+            color: var(--primary-color);
+            transition: border-color 0.3s;
         }
 
-        button {
-            display: inline-block;
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background: var(--bg-color);
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s ease;
+        input:focus, textarea:focus {
+            border-color: var(--secondary-color);
+            outline: none;
         }
 
-        button:hover {
-            background: var(--secondary-color);
-        }
-
-        .form-row {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-            min-width: 45%;
+        .form-group.hidden {
+            display: none;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Patient Contact Information</h1>
         <div class="form-group">
             <label for="name">Name</label>
             <input type="text" id="name" placeholder="Your Name">
@@ -92,23 +80,17 @@
             <label for="email">Email</label>
             <input type="email" id="email" placeholder="Your Email">
         </div>
-        <div class="form-group">
+        <div class="form-group hidden">
             <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" readonly>
+            <input type="tel" id="phone">
         </div>
         <div class="form-group">
-            <label for="birthdate">Birthdate</label>
-            <input type="date" id="birthdate">
+            <label for="birthdate">Birthdate (DD.MM.YYYY)</label>
+            <input type="text" id="birthdate" placeholder="DD.MM.YYYY">
         </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="street">Street</label>
-                <input type="text" id="street" placeholder="Street Name">
-            </div>
-            <div class="form-group">
-                <label for="houseNumber">House Number</label>
-                <input type="text" id="houseNumber" placeholder="House Number">
-            </div>
+        <div class="form-group">
+            <label for="address">Street and House Number</label>
+            <input type="text" id="address" placeholder="Street and House Number">
         </div>
         <div class="form-group">
             <label for="postalCode">Postal Code</label>
@@ -119,136 +101,70 @@
             <input type="text" id="city" placeholder="City">
         </div>
         <div class="form-group">
-            <label for="message">Message</label>
-            <textarea id="message" rows="5" placeholder="Your Message"></textarea>
+            <label for="message">Message (optional)</label>
+            <textarea id="message" rows="3" placeholder="Your Message"></textarea>
         </div>
     </div>
-    <div id="viewport"></div>
-    <div id="viewport-params-size"></div>
-    <div id="viewport-params-expand"></div>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Init TWA
         Telegram.WebApp.ready();
 
-        // Event occurs whenever theme settings are changed in the user's Telegram app (including switching to night mode).
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.documentElement.className = Telegram.WebApp.colorScheme;
-        });
-
-        // Show main button
         Telegram.WebApp.MainButton.setParams({
             text: 'Send Message'
         });
         Telegram.WebApp.MainButton.onClick(function () {
             submitForm();
-        });	
+        });
         Telegram.WebApp.MainButton.show();
+
+        function validateBirthdate(date) {
+            const regex = /^(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.(19|20)\d\d$/;
+            if (!regex.test(date)) {
+                return false;
+            }
+            const [day, month, year] = date.split('.').map(Number);
+            const birthdate = new Date(year, month - 1, day);
+            return birthdate && birthdate.getDate() === day && birthdate.getMonth() === month - 1 && birthdate.getFullYear() === year;
+        }
 
         function submitForm() {
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const phone = document.getElementById('phone').value;
             const birthdate = document.getElementById('birthdate').value;
-            const street = document.getElementById('street').value;
-            const houseNumber = document.getElementById('houseNumber').value;
+            const address = document.getElementById('address').value;
             const postalCode = document.getElementById('postalCode').value;
             const city = document.getElementById('city').value;
             const message = document.getElementById('message').value;
 
-            if (name && email && phone && birthdate && street && houseNumber && postalCode && city && message) {
-                const payload = {
-                    name: name,
-                    email: email,
-                    phone: phone,
-                    birthdate: birthdate,
-                    street: street,
-                    houseNumber: houseNumber,
-                    postalCode: postalCode,
-                    city: city,
-                    message: message
-                };
-                sendData(JSON.stringify(payload));
-                Telegram.WebApp.close();
-
-            } else {
-                Telegram.WebApp.showAlert('Please fill in all fields.');
+            if (!name || !email || !birthdate || !address || !postalCode || !city) {
+                Telegram.WebApp.showAlert('Please fill in all required fields.');
+                return;
             }
+
+            if (!validateBirthdate(birthdate)) {
+                Telegram.WebApp.showAlert('Please enter a valid birthdate in the format DD.MM.YYYY.');
+                return;
+            }
+
+            const payload = {
+                name: name,
+                email: email,
+                phone: phone,
+                birthdate: birthdate,
+                address: address,
+                postalCode: postalCode,
+                city: city,
+                message: message,
+                webAPP: "contact_info"
+            };
+            sendData(JSON.stringify(payload));
+            Telegram.WebApp.close();
         }
 
         function sendData(data) {
-
             Telegram.WebApp.sendData(JSON.stringify(data, null, 2));
-
-
         }
-
-        function setViewportData() {
-            var sizeEl = document.getElementById('viewport-params-size');
-            sizeEl.innerText = 'width: ' + window.innerWidth + ' x ' + 
-                'height: ' + Telegram.WebApp.viewportStableHeight;
-
-            var expandEl = document.querySelector('#viewport-params-expand');
-            expandEl.innerText = 'Is Expanded: ' + (Telegram.WebApp.isExpanded ? 'true' : 'false');
-        }
-
-        function getPhoneNumberFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('phone') || generateRandomPhoneNumber();
-        }
-
-        function generateRandomPhoneNumber() {
-            const prefix = "+49";
-            const number = Math.floor(Math.random() * 1000000000).toString().padStart(9, '0');
-            return prefix + number;
-        }
-
-        function generateRandomString(length) {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-            let result = '';
-            const charactersLength = characters.length;
-            for (let i = 0; i < length; i++) {
-                result += characters.charAt(Math.floor(Math.random() * charactersLength));
-            }
-            return result;
-        }
-
-        function generateRandomEmail() {
-            const domains = ['example.com', 'test.com', 'mail.com'];
-            const domain = domains[Math.floor(Math.random() * domains.length)];
-            return generateRandomString(7) + '@' + domain;
-        }
-
-        function generateRandomDate() {
-            const start = new Date(1950, 0, 1);
-            const end = new Date(2000, 11, 31);
-            const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
-            return date.toISOString().split('T')[0];
-        }
-
-        function fillFormWithRandomData() {
-            document.getElementById('name').value = generateRandomString(10);
-            document.getElementById('email').value = generateRandomEmail();
-            document.getElementById('phone').value = getPhoneNumberFromURL();
-            document.getElementById('birthdate').value = generateRandomDate();
-            document.getElementById('street').value = generateRandomString(15);
-            document.getElementById('houseNumber').value = Math.floor(Math.random() * 1000).toString();
-            document.getElementById('postalCode').value = Math.floor(Math.random() * 90000 + 10000).toString();
-            document.getElementById('city').value = generateRandomString(10);
-            document.getElementById('message').value = 'This is a test message.';
-        }
-
-        fillFormWithRandomData();
-
-        Telegram.WebApp.setHeaderColor('secondary_bg_color');
-
-        setViewportData();
-        Telegram.WebApp.onEvent('viewportChanged', setViewportData);
-
-        Telegram.WebApp.onEvent('themeChanged', function() {
-            document.body.setAttribute('style', '--bg-color:' + Telegram.WebApp.backgroundColor);
-        });
-
     </script>
 </body>
 </html>
